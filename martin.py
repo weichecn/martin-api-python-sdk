@@ -20,9 +20,7 @@ class Client(object):
 
     def get(self, api):
         session = Session()
-        req = Request(
-            'get',
-            self.host + api).prepare()
+        req = Request('get', self.host + api).prepare()
         headers = self.gen_headers('GET', api, 0)
         req.headers.update(headers)
         resp = session.send(req)
@@ -30,10 +28,7 @@ class Client(object):
 
     def post(self, api, **kwargs):
         session = Session()
-        req = Request(
-            'post',
-            self.host + api,
-            data=kwargs).prepare()
+        req = Request('post', self.host + api, data=kwargs).prepare()
         headers = self.gen_headers('POST', api, req.headers['Content-Length'])
         req.headers.update(headers)
         resp = session.send(req)
@@ -43,8 +38,12 @@ class Client(object):
         headers = {}
         now = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
         signature_list = [
-            method, api, now, str(content_length),
-            md5.new(self.app_secret).hexdigest()]
+            method,
+            api,
+            now,
+            str(content_length),
+            md5.new(self.app_secret).hexdigest()
+        ]
         signature = md5.new('&'.join(signature_list)).hexdigest()
 
         headers['Host'] = self.host
