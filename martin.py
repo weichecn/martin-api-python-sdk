@@ -9,30 +9,46 @@ from hashlib import md5
 from requests import Request, Session
 
 
+class APIError(StandardError):
+    def __init__(self, error_code, error, request):
+        self.error_code = error_code
+        self.error = error
+        self.request = request
+        StandardError.__init__(self, error)
+
+    def __str__(self):
+        return '***%s %s*** %s' % (self.error_code, self.error, self.request)
+
+
 class Client(object):
-    def __init__(self, app_key, app_secret, host=None):
+    def __init__(self, app_key, app_secret, api_host=None):
         self.app_key = app_key
         self.app_secret = app_secret
-        if host:
-            self.host = host
+        if api_host:
+            self.api_host = api_host
         else:
-            self.host = 'http://api.buding.cn'
+            self.api_host = 'http://api.buding.cn'
 
     def get(self, api):
         session = Session()
-        req = Request('get', self.host + api).prepare()
+        req = Request('get', self.api_host + api).prepare()
         headers = self.gen_headers('GET', api, 0)
         req.headers.update(headers)
-        resp = session.send(req)
+        ret = session.send(req).json()
+        if 'msg' in ret and 'code' in ret:
+            raise APIError(ret['code'], ret['msg'], ret['request'])
         return resp.json()
 
     def post(self, api, **kwargs):
         session = Session()
-        req = Request('post', self.host + api, data=kwargs).prepare()
+        req = Request('post', self.api_host + api, data=kwargs).prepare()
         headers = self.gen_headers('POST', api, req.headers['Content-Length'])
         req.headers.update(headers)
-        resp = session.send(req)
-        return resp.json()
+        ret = session.send(req).json()
+        if 'msg' in ret and 'code' in ret:
+            raise APIError(ret['code'], ret['msg'], ret['request'])
+        return ret
+
 
     def gen_headers(self, method, api, content_length):
         headers = {}
@@ -42,11 +58,10 @@ class Client(object):
             api,
             now,
             str(content_length),
-            md5.new(self.app_secret).hexdigest()
+            md5(self.app_secret).hexdigest()
         ]
-        signature = md5.new('&'.join(signature_list)).hexdigest()
+        signature = md5('&'.join(signature_list)).hexdigest()
 
-        headers['Host'] = self.host
         headers['Date'] = now
         headers['Authorization'] = '%s:%s' % (self.app_key, signature)
         return headers
