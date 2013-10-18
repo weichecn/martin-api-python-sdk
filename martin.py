@@ -35,6 +35,8 @@ class Client(object):
         headers = self.gen_headers('GET', api, 0)
         req.headers.update(headers)
         ret = session.send(req).json()
+        print req.headers
+        print req.body
         if 'msg' in ret and 'code' in ret:
             raise APIError(ret['code'], ret['msg'], ret['request'])
         return ret
@@ -45,6 +47,8 @@ class Client(object):
         headers = self.gen_headers('POST', api, req.headers['Content-Length'])
         req.headers.update(headers)
         ret = session.send(req).json()
+        print req.headers
+        print req.body
         if 'msg' in ret and 'code' in ret:
             raise APIError(ret['code'], ret['msg'], ret['request'])
         return ret
