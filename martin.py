@@ -37,7 +37,7 @@ class Client(object):
         ret = session.send(req).json()
         if 'msg' in ret and 'code' in ret:
             raise APIError(ret['code'], ret['msg'], ret['request'])
-        return resp.json()
+        return ret
 
     def post(self, api, **kwargs):
         session = Session()
