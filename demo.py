@@ -12,7 +12,7 @@ app_key = 'YOUR_APP_KEY'
 app_secret = 'YOUR_APP_SECRET'
 
 
-def query_violations(license_plate_num, engine_num, body_num, city):
+def query_violations_v1(license_plate_num, engine_num, body_num, city):
     client = martin.Client(app_key, app_secret)
     ret = client.post(
         '/v1/jobs',
@@ -33,5 +33,42 @@ def query_violations(license_plate_num, engine_num, body_num, city):
     print ret
 
 
+def query_violations_v2(license_plate_num, engine_num, body_num, city):
+    ret = client.post(
+        '/v2/jobs',
+        license_plate_num=license_plate_num,
+        engine_num=engine_num,
+        body_num=body_num,
+        city_pinyin=city)
+    job_id = ret['id']
+    while True:
+        try:
+            ret = client.get('/v2/job/%s' % job_id)
+        except martin.APIError, e:
+            if e.responce['code'] == 1005:
+                # get captcha image
+                captcha = e.responce['captcha']
+                captcha_data = client.get('/v2/captcha/%s/img' % captcha['id'])
+                f = open('captcha.jpeg', 'wb')
+                f.write(f)
+                f.close()
+                captcha_text = raw_input('captcha: ')
+
+                # verify captcha
+                client.post(
+                    '/v2/captchas/verify',
+                    id=captcha['id'],
+                    captcha=captcha_text)
+
+        if ret['status'] in ['finished', 'failed']:
+            print ret
+            break
+        else:
+            sleep(ret['sleep'])
+
+
 if __name__ == '__main__':
-    query_violations(u'京XXXXXX', 'XXXXXX', 'XXXXXX', 'beijing')
+    try:
+        query_violations_v1(u'京XXXXXX', 'XXXXXX', 'XXXXXX', 'beijing')
+    except martin.APIError, e:
+        print e

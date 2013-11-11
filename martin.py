@@ -5,19 +5,21 @@ __author__ = 'chenbingyu@buding.cn'
 
 from datetime import datetime
 from hashlib import md5
+from json import loads
 
 from requests import Request, Session
 
 
 class APIError(StandardError):
-    def __init__(self, error_code, error, request):
-        self.error_code = error_code
-        self.error = error
-        self.request = request
-        StandardError.__init__(self, error)
+    def __init__(self, ret_error):
+        self.responce = ret_error
+        StandardError.__init__(self, ret_error['msg'])
 
     def __str__(self):
-        return '***%s %s*** %s' % (self.error_code, self.error, self.request)
+        return '***%s %s*** %s' % (
+            self.responce['code'],
+            self.responce['msg'],
+            self.responce['request'])
 
 
 class Client(object):
@@ -34,9 +36,14 @@ class Client(object):
         req = Request('get', self.api_host + api).prepare()
         headers = self.gen_headers('GET', api, 0)
         req.headers.update(headers)
-        ret = session.send(req).json()
+        responce = session.send(req)
+        try:
+            ret = loads(responce.content)
+        except ValueError, e:
+            return resp.content
         if 'msg' in ret and 'code' in ret:
-            raise APIError(ret['code'], ret['msg'], ret['request'])
+            raise APIError(ret)
+
         return ret
 
     def post(self, api, **kwargs):
@@ -44,9 +51,13 @@ class Client(object):
         req = Request('post', self.api_host + api, data=kwargs).prepare()
         headers = self.gen_headers('POST', api, req.headers['Content-Length'])
         req.headers.update(headers)
-        ret = session.send(req).json()
+        responce = session.send(req)
+        try:
+            ret = loads(responce.content)
+        except ValueError, e:
+            return resp.content
         if 'msg' in ret and 'code' in ret:
-            raise APIError(ret['code'], ret['msg'], ret['request'])
+            raise APIError(ret)
         return ret
 
 
