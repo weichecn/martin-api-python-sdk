@@ -8,12 +8,13 @@ from time import sleep
 import martin
 
 
-app_key = 'YOUR_APP_KEY'
-app_secret = 'YOUR_APP_SECRET'
+app_key = 'demo_key'
+app_secret = 'demo_secret'
+
+client = martin.Client(app_key, app_secret)
 
 
 def query_violations_v1(license_plate_num, engine_num, body_num, city):
-    client = martin.Client(app_key, app_secret)
     ret = client.post(
         '/v1/jobs',
         license_plate_num=license_plate_num,
@@ -30,7 +31,6 @@ def query_violations_v1(license_plate_num, engine_num, body_num, city):
             ret = client.get('/v1/job/' + ret['job_id'])
         else:
             break
-    print ret
 
 
 def query_violations_v2(license_plate_num, engine_num, body_num, city):
@@ -61,7 +61,6 @@ def query_violations_v2(license_plate_num, engine_num, body_num, city):
                     captcha=captcha_text)
 
         if ret['status'] in ['finished', 'failed']:
-            print ret
             break
         else:
             sleep(ret['sleep'])
@@ -69,6 +68,6 @@ def query_violations_v2(license_plate_num, engine_num, body_num, city):
 
 if __name__ == '__main__':
     try:
-        query_violations_v1(u'京XXXXXX', 'XXXXXX', 'XXXXXX', 'beijing')
+        query_violations_v2(u'京XXXXXX', 'XXXXXX', 'XXXXXX', 'beijing')
     except martin.APIError, e:
         print e
