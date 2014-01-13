@@ -63,7 +63,6 @@ class Client(object):
     def gen_headers(self, method, api, content_length):
         headers = {}
         now = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-        now = 'Wed, 08 Jan 2014 03:57:28 GMT'
         signature_list = [
             method,
             api,
