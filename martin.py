@@ -40,7 +40,7 @@ class Client(object):
         try:
             ret = loads(responce.content)
         except ValueError, e:
-            return resp.content
+            return responce.content
         if 'msg' in ret and 'code' in ret:
             raise APIError(ret)
 
@@ -55,7 +55,7 @@ class Client(object):
         try:
             ret = loads(responce.content)
         except ValueError, e:
-            return resp.content
+            return responce.content
         if 'msg' in ret and 'code' in ret:
             raise APIError(ret)
         return ret
